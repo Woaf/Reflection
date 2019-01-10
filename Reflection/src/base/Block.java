@@ -27,6 +27,8 @@ public class Block {
     @Column(nullable = false)
     private int id_;
     @Column(nullable = false)
+    private int step_ = 1;
+    @Column(nullable = false)
     private float width_;
     @Column(nullable = false)
     private float height_;
