@@ -114,20 +114,21 @@ public class Main {
         tables.forEach((name) -> {
             try {
                 Class<?> arbitraryClass = Class.forName("base." + name);
-                List<Constructor<?>> constructors = Arrays.asList(arbitraryClass.getDeclaredConstructors());
+                ClassWrapper classWrapper = new ClassWrapper();
+                classWrapper.setClass_constructors(Arrays.asList(arbitraryClass.getDeclaredConstructors()));
 
-                System.out.println(constructors.toString());
+                System.out.println(classWrapper.getClass_constructors().toString());
 
-                Object o = constructors.get(0).newInstance();
+                Object o = classWrapper.getClass_constructors().get(0).newInstance();
 
-                List<Field> oFields = Arrays.asList(o.getClass().getDeclaredFields());
-                List<Method> oMethods = Arrays.asList(o.getClass().getDeclaredMethods());
+                classWrapper.setClass_fields(Arrays.asList(o.getClass().getDeclaredFields()));
+                classWrapper.setClass_methods(Arrays.asList(o.getClass().getDeclaredMethods()));
 
                 System.out.println("Fileds:");
-                oFields.forEach(System.out::println);
+                classWrapper.getClass_fields().forEach(System.out::println);
                 
                 System.out.println("Methods:");
-                oMethods.forEach(System.out::println);
+                classWrapper.getClass_methods().forEach(System.out::println);
 
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
