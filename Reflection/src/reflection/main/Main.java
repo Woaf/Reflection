@@ -8,6 +8,7 @@
 package reflection.main;
 
 import base.Block;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -32,6 +33,9 @@ import javax.persistence.Query;
  * @author woaf
  */
 public class Main {
+    
+    private static final String ReflectionDBSource = "ReflectionPU";
+    private static final String AgentDBSource = "AgentPU";
 
     private static void fillDB() {
 
@@ -106,29 +110,34 @@ public class Main {
                 .map(s -> toCamelCase(s))
                 .collect(Collectors.toList());
 
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("ReflectionPU");
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory(ReflectionDBSource);
         EntityManager em = emf.createEntityManager();
         Query q = em.createQuery(createQueryString(tables.get(0)));
         q.getResultList().forEach(System.out::println);
 
+        List<ClassWrapper> resultWrappers = new ArrayList<>();
+        
         tables.forEach((name) -> {
             try {
                 Class<?> arbitraryClass = Class.forName("base." + name);
                 ClassWrapper classWrapper = new ClassWrapper();
                 classWrapper.setClass_constructors(Arrays.asList(arbitraryClass.getDeclaredConstructors()));
 
-                System.out.println(classWrapper.getClass_constructors().toString());
+                //System.out.println(classWrapper.getClass_constructors().toString());
 
                 Object o = classWrapper.getClass_constructors().get(0).newInstance();
 
                 classWrapper.setClass_fields(Arrays.asList(o.getClass().getDeclaredFields()));
                 classWrapper.setClass_methods(Arrays.asList(o.getClass().getDeclaredMethods()));
+                resultWrappers.add(classWrapper);
 
+                /*
                 System.out.println("Fileds:");
                 classWrapper.getClass_fields().forEach(System.out::println);
                 
                 System.out.println("Methods:");
                 classWrapper.getClass_methods().forEach(System.out::println);
+                */
 
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -142,6 +151,29 @@ public class Main {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
+        
+        
+        Agent a = new Agent();
+        a.setKnownClasses_(resultWrappers);
+        for(int i = 0; i < a.getKnownClasses_().size(); i++){
+            System.out.println("Constructors:");
+            a.getKnownClasses_().get(i).getClass_constructors().forEach(System.out::println);
+            System.out.println("Fileds:");
+            a.getKnownClasses_().get(i).getClass_fields().forEach(System.out::println);
+            System.out.println("Methods:");
+            a.getKnownClasses_().get(i).getClass_methods().forEach(System.out::println);
+        }
+        
+        /**
+         * note: We will deal with persisting the agents into a database later on
+         *
+        emf = Persistence.createEntityManagerFactory(AgentDBSource);
+        em = emf.createEntityManager();
+        em.getTransaction().begin();
+        em.persist(a);
+        em.getTransaction().commit();
+        em.close();
+        */
 
     }
 }

@@ -8,7 +8,20 @@
       <property name="javax.persistence.jdbc.user" value="woaf"/>
       <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.ClientDriver"/>
       <property name="javax.persistence.jdbc.password" value="123"/>
-      <property name="javax.persistence.schema-generation.database.action" value="create"/>
+      <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
+      <property name="eclipselink.canonicalmodel.subpackage" value="ref"/>
+    </properties>
+  </persistence-unit>
+  <persistence-unit name="AgentPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <class>reflection.main.Agent</class>
+    <properties>
+      <property name="javax.persistence.jdbc.url" value="jdbc:derby://localhost:1527/Agent"/>
+      <property name="javax.persistence.jdbc.user" value="woaf"/>
+      <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.ClientDriver"/>
+      <property name="javax.persistence.jdbc.password" value="123"/>
+      <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
+      <property name="eclipselink.canonicalmodel.subpackage" value="age"/>
     </properties>
   </persistence-unit>
 </persistence>
