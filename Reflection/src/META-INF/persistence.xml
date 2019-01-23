@@ -3,6 +3,7 @@
   <persistence-unit name="ReflectionPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>base.Block</class>
+    <class>evo.Tree</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:derby://localhost:1527/Reflection"/>
       <property name="javax.persistence.jdbc.user" value="woaf"/>

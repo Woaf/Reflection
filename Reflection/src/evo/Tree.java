@@ -14,10 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package reflection.main;
+package evo;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -27,24 +26,39 @@ import lombok.Data;
 
 /**
  *
- * @author woaf
+ * @author balin
  */
 @Data
 @Entity
-@Table(schema = "WOAF", name = "AGENT")
-public class Agent {
+@Table(schema="WOAF", name="TREE")
+public class Tree {
     
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false)
     private int id_;
-    private List<ClassWrapper> knownClasses_ = new ArrayList<>();
+    @Column(nullable = false)
+    private int step_;
+    @Column(nullable = false)
+    private float height_;
 
-    public Agent() {
+    public Tree() {
+        step_ = 1;
+        height_ = 0;
+    }
+
+    public Tree(float height_) {
+        step_ = 1;
+        this.height_ = height_;
     }
     
-    public void addWrappers(List<ClassWrapper> cw)
+    private float grow(){
+        return (float) Math.log10(step_);
+    }
+    
+    public float getHeight_()
     {
-        knownClasses_.addAll(cw);
+        return height_ + grow();
     }
     
 }

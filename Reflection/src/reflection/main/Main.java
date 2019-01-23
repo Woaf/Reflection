@@ -8,11 +8,8 @@
 package reflection.main;
 
 import base.Block;
-import com.sun.javafx.scene.control.skin.VirtualFlow;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import evo.Tree;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -43,11 +40,13 @@ public class Main {
 
         Block b = new Block(10, 20, 15, true, true);
         Block b2 = new Block(40, 20, 30, false, false);
+        Tree t = new Tree();
 
         objects.add(b);
         objects.add(b2);
+        objects.add(t);
 
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("ReflectionPU");
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory(ReflectionDBSource);
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
 
@@ -103,58 +102,16 @@ public class Main {
      */
     public static void main(String[] args) {
 
+        
         fillDB();
 
-        List<String> tables = setupDatabaseConnection()
-                .stream()
-                .map(s -> toCamelCase(s))
-                .collect(Collectors.toList());
-
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory(ReflectionDBSource);
-        EntityManager em = emf.createEntityManager();
-        Query q = em.createQuery(createQueryString(tables.get(0)));
-        q.getResultList().forEach(System.out::println);
-
-        List<ClassWrapper> resultWrappers = new ArrayList<>();
-        
-        tables.forEach((name) -> {
-            try {
-                Class<?> arbitraryClass = Class.forName("base." + name);
-                ClassWrapper classWrapper = new ClassWrapper();
-                classWrapper.setClass_constructors(Arrays.asList(arbitraryClass.getDeclaredConstructors()));
-
-                //System.out.println(classWrapper.getClass_constructors().toString());
-
-                Object o = classWrapper.getClass_constructors().get(0).newInstance();
-
-                classWrapper.setClass_fields(Arrays.asList(o.getClass().getDeclaredFields()));
-                classWrapper.setClass_methods(Arrays.asList(o.getClass().getDeclaredMethods()));
-                resultWrappers.add(classWrapper);
-
-                /*
-                System.out.println("Fileds:");
-                classWrapper.getClass_fields().forEach(System.out::println);
-                
-                System.out.println("Methods:");
-                classWrapper.getClass_methods().forEach(System.out::println);
-                */
-
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InstantiationException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvocationTargetException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        });
+        List<ClassWrapper> resultWrappers = extractTables("base.");
+        List<ClassWrapper> resultWrappers2 = extractTables("evo.");
         
         
         Agent a = new Agent();
-        a.setKnownClasses_(resultWrappers);
+        a.addWrappers(resultWrappers);
+        a.addWrappers(resultWrappers2);
         for(int i = 0; i < a.getKnownClasses_().size(); i++){
             System.out.println("Constructors:");
             a.getKnownClasses_().get(i).getClass_constructors().forEach(System.out::println);
@@ -162,6 +119,7 @@ public class Main {
             a.getKnownClasses_().get(i).getClass_fields().forEach(System.out::println);
             System.out.println("Methods:");
             a.getKnownClasses_().get(i).getClass_methods().forEach(System.out::println);
+            System.out.println("Evolutionary object?: " + a.getKnownClasses_().get(i).isEvolutionary());
         }
         
         /**
@@ -175,5 +133,47 @@ public class Main {
         em.close();
         */
 
+    }
+
+    private static List<ClassWrapper> extractTables(String path) {
+        List<String> tables = setupDatabaseConnection()
+                .stream()
+                .map(s -> toCamelCase(s))
+                .collect(Collectors.toList());
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory(ReflectionDBSource);
+        EntityManager em = emf.createEntityManager();
+        Query q = em.createQuery(createQueryString(tables.get(0)));
+        List<ClassWrapper> resultWrappers = new ArrayList<>();
+        tables.forEach((name) -> {
+            try {
+                Class<?> arbitraryClass = Class.forName(path + name);
+                ClassWrapper classWrapper = new ClassWrapper();
+                classWrapper.setClass_constructors(Arrays.asList(arbitraryClass.getDeclaredConstructors()));
+                
+                if(path.equals("base.")){
+                    classWrapper.setEvolutionary(false);
+                    Object o = classWrapper.getClass_constructors().get(0).newInstance();
+                    classWrapper.setClass_fields(Arrays.asList(o.getClass().getDeclaredFields()));
+                    classWrapper.setClass_methods(Arrays.asList(o.getClass().getDeclaredMethods()));
+                }
+                else {
+                    classWrapper.setEvolutionary(true);
+                }
+
+                resultWrappers.add(classWrapper);
+
+            } catch (ClassNotFoundException ex) {
+                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvocationTargetException ex) {
+                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        return resultWrappers;
     }
 }

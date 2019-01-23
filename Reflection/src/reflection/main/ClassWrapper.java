@@ -33,6 +33,8 @@ public class ClassWrapper {
     private List<Constructor<?>> class_constructors = new ArrayList<>();
     private List<Method> class_methods = new ArrayList<>();
     private List<Field> class_fields = new ArrayList<>();
+    
+    private boolean isEvolutionary = false;
 
     public ClassWrapper() {
     }
@@ -61,5 +63,14 @@ public class ClassWrapper {
         this.class_fields = class_fields;
     }
     
+    public boolean isEvolutionary()
+    {
+        return isEvolutionary;
+    }
+    
+    public void setEvolutionary(boolean evo)
+    {
+        isEvolutionary = evo;
+    }
     
 }
