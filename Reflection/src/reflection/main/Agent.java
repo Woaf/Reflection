@@ -17,7 +17,10 @@
 package reflection.main;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -45,6 +48,19 @@ public class Agent {
     public void addWrappers(List<ClassWrapper> cw)
     {
         knownClasses_.addAll(cw);
+    }
+    
+    public void exposeObject()
+    {
+        List<Object> evoObj = knownClasses_.stream()
+                .filter(c -> c.isEvolutionary())
+                .collect(Collectors.toList());
+        
+        Random rnd = new Random();
+        
+        ClassWrapper o = (ClassWrapper) evoObj.get(rnd.nextInt(evoObj.size()));
+        
+        System.out.println(o.getClass_constructors().get(1).getParameters()[0].getType());
     }
     
 }

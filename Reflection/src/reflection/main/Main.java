@@ -122,6 +122,18 @@ public class Main {
             System.out.println("Evolutionary object?: " + a.getKnownClasses_().get(i).isEvolutionary());
         }
         
+        System.out.println("EXPOSE:");
+        a.exposeObject();
+        
+        /*
+        while(true){
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
         /**
          * note: We will deal with persisting the agents into a database later on
          *
@@ -163,7 +175,7 @@ public class Main {
                 resultWrappers.add(classWrapper);
 
             } catch (ClassNotFoundException ex) {
-                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(Main.class.getName()).log(Level.WARNING, null, ex);
             } catch (InstantiationException ex) {
                 //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IllegalAccessException ex) {
