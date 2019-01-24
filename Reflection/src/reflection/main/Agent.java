@@ -54,12 +54,15 @@ public class Agent {
 
     public void updateClassWrapperWithName(String name, Method method) {
         Optional<ClassWrapper> cw = knownClasses_.stream().filter(kw -> kw.getName().equals(name)).findFirst();
-        if(cw.get() != null){
-            cw.get().getClass_methods().add(method);
-            knownClasses_.removeIf(c -> c.getName().equals(name));
-            knownClasses_.add(cw.get());
+        if (cw.get() != null) {
+            if (!cw.get().getClass_methods().contains(method)) {
+                cw.get().getClass_methods().add(method);
+                knownClasses_.removeIf(c -> c.getName().equals(name));
+                knownClasses_.add(cw.get());
+            }
+            
         }
-        
+
     }
 
     private void pealConstructorName(String constructorName) {
