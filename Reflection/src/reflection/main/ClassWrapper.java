@@ -30,6 +30,8 @@ import lombok.Data;
 @Data
 public class ClassWrapper {
     
+    private String name;
+    
     private List<Constructor<?>> class_constructors = new ArrayList<>();
     private List<Method> class_methods = new ArrayList<>();
     private List<Field> class_fields = new ArrayList<>();

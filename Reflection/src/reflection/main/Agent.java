@@ -16,9 +16,10 @@
  */
 package reflection.main;
 
-import java.lang.reflect.Type;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
@@ -50,9 +51,18 @@ public class Agent {
     public void addWrappers(List<ClassWrapper> cw) {
         knownClasses_.addAll(cw);
     }
-    
-    private void pealConstructorName(String constructorName)
-    {
+
+    public void updateClassWrapperWithName(String name, Method method) {
+        Optional<ClassWrapper> cw = knownClasses_.stream().filter(kw -> kw.getName().equals(name)).findFirst();
+        if(cw.get() != null){
+            cw.get().getClass_methods().add(method);
+            knownClasses_.removeIf(c -> c.getName().equals(name));
+            knownClasses_.add(cw.get());
+        }
+        
+    }
+
+    private void pealConstructorName(String constructorName) {
         String[] parts = constructorName.split(" ");
         String[] constructorParts = parts[1].split("\\(");
         localClassOfInterest = constructorParts[0];
@@ -85,17 +95,15 @@ public class Agent {
         }
 
         //System.out.println("param index: " + parameterIndex);
-        
-        if(paramListSize != 0)
-        {
+        if (paramListSize != 0) {
             localTypeOfInterest = (o.getClass_constructors()
-                .get(constructorIndex)
-                .getParameters()[parameterIndex]
-                .getType().toString());
+                    .get(constructorIndex)
+                    .getParameters()[parameterIndex]
+                    .getType().toString());
         } else {
             localTypeOfInterest = null;
         }
-        
+
     }
 
 }

@@ -139,6 +139,8 @@ public class Main {
             if(m != null)
             {
                 System.out.println("I found the following method for you: " + m);
+                a.updateClassWrapperWithName("evo.Tree", m);
+                System.out.println(a.getKnownClasses_());
             }
         }
         
@@ -177,6 +179,7 @@ public class Main {
             try {
                 Class<?> arbitraryClass = Class.forName(path + name);
                 ClassWrapper classWrapper = new ClassWrapper();
+                classWrapper.setName(path+name);
                 classWrapper.setClass_constructors(Arrays.asList(arbitraryClass.getDeclaredConstructors()));
                 
                 if(path.equals("base.")){
