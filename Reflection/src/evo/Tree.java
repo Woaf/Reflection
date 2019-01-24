@@ -51,6 +51,12 @@ public class Tree {
         step_ = 1;
         this.height_ = height_;
     }
+
+    public Tree(int id_, int step_, float height_) {
+        this.id_ = id_;
+        this.step_ = step_;
+        this.height_ = height_;
+    }
     
     private float grow(){
         return (float) Math.log10(step_);

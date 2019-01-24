@@ -9,7 +9,10 @@ package reflection.main;
 
 import base.Block;
 import evo.Tree;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -17,6 +20,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -100,7 +105,11 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) 
+            throws InstantiationException, 
+                    IllegalAccessException, 
+                    IllegalArgumentException, 
+                    InvocationTargetException {
 
         
         fillDB();
@@ -124,6 +133,14 @@ public class Main {
         
         System.out.println("EXPOSE:");
         a.exposeObject();
+        if(a.getLocalTypeOfInterest() != null)
+        {
+            Method m = returnMethod(a.getLocalClassOfInterest(), a.getLocalTypeOfInterest());
+            if(m != null)
+            {
+                System.out.println("I found the following method for you: " + m);
+            }
+        }
         
         /*
         while(true){
@@ -187,5 +204,54 @@ public class Main {
             }
         });
         return resultWrappers;
+    }
+    
+    public static Method returnMethod(String className, String type) 
+            throws InstantiationException, 
+                    IllegalAccessException, 
+                    IllegalArgumentException, 
+                    InvocationTargetException {
+        try {
+            
+            System.out.println("I am searching for class "+ className +", that has a method of return type of " + type);
+            
+            Class<?> arbitraryClass = Class.forName(className);
+            ClassWrapper classWrapper = new ClassWrapper();
+            classWrapper.setClass_constructors(Arrays.asList(arbitraryClass.getDeclaredConstructors()));
+            
+            Object o = getEmptyConstructor(classWrapper.getClass_constructors()).newInstance();
+            classWrapper.setClass_fields(Arrays.asList(o.getClass().getDeclaredFields()));
+            classWrapper.setClass_methods(Arrays.asList(o.getClass().getDeclaredMethods()));
+            
+            List<Method> localMethodList = new ArrayList<>();
+            
+            localMethodList = classWrapper
+                    .getClass_methods()
+                    .stream()
+                    .filter(method -> method.getReturnType().getName().equals(type))
+                    .collect(Collectors.toList());
+            
+            if(localMethodList.size() > 0)
+            {
+                Random rnd = new Random();
+                return localMethodList.get(rnd.nextInt(localMethodList.size()));
+            } else {
+                return null;
+            }
+
+        } catch (ClassNotFoundException ex) {
+            //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("Class could not be found among the evolutionary objects.");
+        }
+        return null;
+    }
+    
+    private static Constructor<?> getEmptyConstructor(List<Constructor<?>> constructors){
+        Optional<Constructor<?>> constr = constructors.stream().filter(c -> c.getParameterCount() == 0).findFirst();
+        if(constr.isPresent()){
+            return constr.get();
+        } else {
+            return null;
+        }
     }
 }

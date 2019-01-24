@@ -16,8 +16,8 @@
  */
 package reflection.main;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -36,31 +36,66 @@ import lombok.Data;
 @Entity
 @Table(schema = "WOAF", name = "AGENT")
 public class Agent {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id_;
     private List<ClassWrapper> knownClasses_ = new ArrayList<>();
+    private String localClassOfInterest = "";
+    private String localTypeOfInterest = null;
 
     public Agent() {
     }
-    
-    public void addWrappers(List<ClassWrapper> cw)
-    {
+
+    public void addWrappers(List<ClassWrapper> cw) {
         knownClasses_.addAll(cw);
     }
     
-    public void exposeObject()
+    private void pealConstructorName(String constructorName)
     {
+        String[] parts = constructorName.split(" ");
+        String[] constructorParts = parts[1].split("\\(");
+        localClassOfInterest = constructorParts[0];
+    }
+
+    public void exposeObject() {
         List<Object> evoObj = knownClasses_.stream()
                 .filter(c -> c.isEvolutionary())
                 .collect(Collectors.toList());
-        
+
         Random rnd = new Random();
+        int randomIndex = rnd.nextInt(evoObj.size());
+        ClassWrapper o = (ClassWrapper) evoObj.get(randomIndex);
+
+        // TODO: explanation
+        int constructorIndex = rnd.nextInt(o.getClass_constructors().size());
+        pealConstructorName(o.getClass_constructors().get(constructorIndex).toString());
+        //System.out.println("Class name: " + localClassOfInterest);
+        //System.out.println("Constructor index: " + constructorIndex);
+        int paramListSize = o.getClass_constructors()
+                .get(constructorIndex)
+                .getParameters().length;
+
+        int parameterIndex = 0;
+        if (paramListSize > 0) {
+            parameterIndex = rnd.nextInt(
+                    o.getClass_constructors()
+                            .get(constructorIndex)
+                            .getParameters().length);
+        }
+
+        //System.out.println("param index: " + parameterIndex);
         
-        ClassWrapper o = (ClassWrapper) evoObj.get(rnd.nextInt(evoObj.size()));
+        if(paramListSize != 0)
+        {
+            localTypeOfInterest = (o.getClass_constructors()
+                .get(constructorIndex)
+                .getParameters()[parameterIndex]
+                .getType().toString());
+        } else {
+            localTypeOfInterest = null;
+        }
         
-        System.out.println(o.getClass_constructors().get(1).getParameters()[0].getType());
     }
-    
+
 }
