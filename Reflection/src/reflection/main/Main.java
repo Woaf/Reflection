@@ -12,7 +12,6 @@ import evo.Tree;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -109,7 +108,8 @@ public class Main {
             throws InstantiationException, 
                     IllegalAccessException, 
                     IllegalArgumentException, 
-                    InvocationTargetException {
+                    InvocationTargetException,
+                    InterruptedException {
 
         
         fillDB();
@@ -131,18 +131,23 @@ public class Main {
             System.out.println("Evolutionary object?: " + a.getKnownClasses_().get(i).isEvolutionary());
         }
         
-        System.out.println("EXPOSE:");
-        a.exposeObject();
-        if(a.getLocalTypeOfInterest() != null)
+        while (true)
         {
-            Method m = returnMethod(a.getLocalClassOfInterest(), a.getLocalTypeOfInterest());
-            if(m != null)
+            System.out.println("EXPOSE:");
+            a.exposeObject();
+            if(a.getLocalTypeOfInterest() != null)
             {
-                System.out.println("I found the following method for you: " + m);
-                a.updateClassWrapperWithName("evo.Tree", m);
-                System.out.println(a.getKnownClasses_());
+                Method m = returnMethod(a.getLocalClassOfInterest(), a.getLocalTypeOfInterest());
+                if(m != null)
+                {
+                    System.out.println("I found the following method for you: " + m);
+                    a.updateClassWrapperWithName("evo.Tree", m);
+                    System.out.println(a.getKnownClasses_());
+                }
             }
+            Thread.sleep(1000);
         }
+        
         
         /*
         while(true){
