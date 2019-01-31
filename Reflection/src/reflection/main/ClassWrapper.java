@@ -20,7 +20,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Data;
 
 /**
@@ -35,6 +37,7 @@ public class ClassWrapper {
     private List<Constructor<?>> class_constructors = new ArrayList<>();
     private List<Method> class_methods = new ArrayList<>();
     private List<Field> class_fields = new ArrayList<>();
+    private Set<String> class_method_names = new HashSet<>();
     
     private boolean isEvolutionary = false;
 
@@ -52,9 +55,31 @@ public class ClassWrapper {
     public List<Method> getClass_methods() {
         return class_methods;
     }
+    
+    public void filterMethodName()
+    {
+        Set<String> tempNameSet = new HashSet<>();
+        for(String m : class_method_names)
+        {
+            if(!m.equals("setId_")
+                    && !m.equals("getId_")
+                    && !m.equals("canEqual")
+                    && !m.equals("equals")
+                    && !m.equals("toString")
+                    && !m.equals("hashCode"))
+            {
+                tempNameSet.add(m);
+            }
+        }
+        class_method_names = tempNameSet;
+    }
 
     public void setClass_methods(List<Method> class_methods) {
         this.class_methods = class_methods;
+        for(Method m : class_methods)
+        {
+            this.class_method_names.add(m.getName());
+        }
     }
 
     public List<Field> getClass_fields() {

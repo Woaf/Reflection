@@ -122,6 +122,9 @@ public class Main {
         a.addWrappers(resultWrappers);
         a.addWrappers(resultWrappers2);
         for(int i = 0; i < a.getKnownClasses_().size(); i++){
+            a.getKnownClasses_().get(i).filterMethodName();
+            /**
+             * Keep these comments for debugging purposes
             System.out.println("Constructors:");
             a.getKnownClasses_().get(i).getClass_constructors().forEach(System.out::println);
             System.out.println("Fileds:");
@@ -129,6 +132,7 @@ public class Main {
             System.out.println("Methods:");
             a.getKnownClasses_().get(i).getClass_methods().forEach(System.out::println);
             System.out.println("Evolutionary object?: " + a.getKnownClasses_().get(i).isEvolutionary());
+            */
         }
         
         while (true)
@@ -145,17 +149,48 @@ public class Main {
                     System.out.println(a.getKnownClasses_());
                 }
             }
-            Thread.sleep(1000);
-        }
-        
-        
-        /*
-        while(true){
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            
+            int x = 0;
+            int y = 0;
+            Random rnd = new Random();
+            while(x == y && a.getKnownClasses_().size() != 1)
+            {
+                x = rnd.nextInt(a.getKnownClasses_().size());
+                y = rnd.nextInt(a.getKnownClasses_().size());
+                
             }
+            
+            ClassWrapper firstObj = a.getKnownClasses_().get(x);
+            ClassWrapper secondObj = a.getKnownClasses_().get(y);
+
+            System.out.println("First: " + firstObj.getClass_method_names());
+            System.out.println("Second:" + secondObj.getClass_method_names());
+            
+            String arbitraryMethodName = "";
+            int itemIndex = rnd.nextInt(firstObj.getClass_constructors().size());
+            int iterator = 0;
+            for(String s : firstObj.getClass_method_names())
+            {
+                if(itemIndex == iterator)
+                {
+                    arbitraryMethodName = s;
+                    break;
+                }
+            }
+            
+            System.out.println("Looking to match with: " + arbitraryMethodName);
+            
+            if(secondObj.getClass_method_names().contains(arbitraryMethodName))
+            {
+                System.out.println("SUCCESS!!");
+                ClassWrapper c = combineObjects(firstObj, secondObj);
+                System.out.println("NEW CLASS: " + c);
+            }
+            
+            
+            
+            
+            Thread.sleep(1000);
         }
         
         /**
@@ -169,6 +204,18 @@ public class Main {
         em.close();
         */
 
+    }
+    
+    private static ClassWrapper combineObjects(ClassWrapper first, ClassWrapper second)
+    {
+        ClassWrapper cw = new ClassWrapper();
+        cw.setName(first.getName() + second.getName());
+        cw.setClass_fields(first.getClass_fields());
+        cw.getClass_fields().addAll(second.getClass_fields());
+        cw.setClass_methods(first.getClass_methods());
+        cw.getClass_methods().addAll(second.getClass_methods());
+        
+        return cw;
     }
 
     private static List<ClassWrapper> extractTables(String path) {
