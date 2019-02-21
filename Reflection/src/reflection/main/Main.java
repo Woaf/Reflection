@@ -135,6 +135,8 @@ public class Main {
 
     /**
      * The command line arguments are not yet used for this program.
+     * On another note, the exceptions should be handled where they could 
+     * potentially occur, instead of being thrown altogether to the main function.
      * @param args the command line arguments
      */
     public static void main(String[] args) 
@@ -144,13 +146,30 @@ public class Main {
                     InvocationTargetException,
                     InterruptedException {
 
-        
+        /**
+         * We first fill up the database, that represents the object space
+         * of our model.
+         */
         fillDB();
 
+        /**
+         * Then, we extract all of the objects that are present in the database.
+         * Even though it is not explicitly implemented in this program, but one 
+         * instance of each object in the database is enough for the agent to 
+         * extract every piece of information about the object class itself.
+         * 
+         * The following lists represent the objects that are present in the base
+         * object, and that are present in the evolutionary objects. 
+         * 
+         * These two lists altogether make up the representational table
+         */
         List<ClassWrapper> resultWrappers = extractTables("base.");
         List<ClassWrapper> resultWrappers2 = extractTables("evo.");
         
-        
+        /**
+         * We create our agent, which will gain knowledge about the environmental objects 
+         * in an incremental fashion.
+        */
         Agent a = new Agent();
         a.addWrappers(resultWrappers);
         a.addWrappers(resultWrappers2);
@@ -168,6 +187,11 @@ public class Main {
             */
         }
         
+        /**
+         * The exploration of the object properties by the agents are looped forever.
+         * 
+         * Here is where the combination of the known objects happen.
+         */
         while (true)
         {
             System.out.println("EXPOSE:");
@@ -310,6 +334,16 @@ public class Main {
         return resultWrappers;
     }
     
+    /**
+     * 
+     * @param className Specifies which object is being observed.
+     * @param type Specifies the return type that we want to find a matching function for.
+     * @return
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws IllegalArgumentException
+     * @throws InvocationTargetException 
+     */
     public static Method returnMethod(String className, String type) 
             throws InstantiationException, 
                     IllegalAccessException, 
@@ -319,37 +353,74 @@ public class Main {
             
             System.out.println("I am searching for class "+ className +", that has a method of return type of " + type);
             
+            /**
+             * We create a constructor the the class that's name was given as a
+             * parameter, and get its constructors.
+             */
             Class<?> arbitraryClass = Class.forName(className);
             ClassWrapper classWrapper = new ClassWrapper();
             classWrapper.setClass_constructors(Arrays.asList(arbitraryClass.getDeclaredConstructors()));
             
+            /**
+             * Using the getEmptyConstructor, we make sure that we are creating the 
+             * observed object with its default, empty constructor. 
+             * 
+             * The purpose of this is that when extracting the constructors into 
+             * a list, the first element might not be the empty constructor, and 
+             * hence we have to find it.
+             * 
+             * Also, the empty constructor is used in this case, because we are not 
+             * particularly interested in the values of the data members of the 
+             * object, but only its functions. And, using this method, we do not
+             * have to worry about finding parameters for the non-empty constructors.
+             */
             Object o = getEmptyConstructor(classWrapper.getClass_constructors()).newInstance();
             classWrapper.setClass_fields(Arrays.asList(o.getClass().getDeclaredFields()));
             classWrapper.setClass_methods(Arrays.asList(o.getClass().getDeclaredMethods()));
             
             List<Method> localMethodList = new ArrayList<>();
             
+            /**
+             * A list of methods is extracted from that object, where the return 
+             * type of the method matches the type we entered as a parameter.
+             */
             localMethodList = classWrapper
                     .getClass_methods()
                     .stream()
                     .filter(method -> method.getReturnType().getName().equals(type))
                     .collect(Collectors.toList());
             
+            /**
+             * This list could be empty however, therefore we must only return a 
+             * valid value when the size of the list is at least 1.
+             */
             if(localMethodList.size() > 0)
             {
+                /**
+                 * If the method list with the specified return type is not empty, 
+                 * then we randomly choose a method, and return it.
+                 */
                 Random rnd = new Random();
                 return localMethodList.get(rnd.nextInt(localMethodList.size()));
             } else {
+                /**
+                 * Otherwise, we return with a null.
+                 */
                 return null;
             }
 
         } catch (ClassNotFoundException ex) {
-            //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("Class could not be found among the evolutionary objects.");
         }
         return null;
     }
     
+    /**
+     * This method is responsible for finding an empty constructor of an existing 
+     * object type.
+     * @param constructors The list of constructors that are being observed.
+     * @return An empty constructor of an object type.
+     */
     private static Constructor<?> getEmptyConstructor(List<Constructor<?>> constructors){
         Optional<Constructor<?>> constr = constructors.stream().filter(c -> c.getParameterCount() == 0).findFirst();
         if(constr.isPresent()){
