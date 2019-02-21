@@ -1,9 +1,22 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- * 
- * The program uses jdbc:derby @ localhot:1527 with username woaf and psw 123
+ * Copyright (C) 2019 Balint Fazekas
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+ * This program uses jdbc:derby @ localhot:1527 with username woaf and psw 123
  */
 package reflection.main;
 
@@ -31,13 +44,16 @@ import javax.persistence.Query;
 
 /**
  *
- * @author woaf
+ * @author Woaf
  */
 public class Main {
     
     private static final String ReflectionDBSource = "ReflectionPU";
     private static final String AgentDBSource = "AgentPU";
 
+    /**
+     * We fill up the object space using this method
+     */
     private static void fillDB() {
 
         List<Object> objects = new ArrayList<>();
@@ -62,6 +78,12 @@ public class Main {
         em.close();
     }
 
+    /**
+     * This is a simple function that turns any word into such a format,
+     * where the first letter is capitalized and the rest is not
+     * @param input The string we with to modify.
+     * @return The modified name.
+     */
     private static String toCamelCase(String input) {
 
         StringBuilder sb = new StringBuilder();
@@ -71,6 +93,11 @@ public class Main {
         return sb.toString();
     }
 
+    /**
+     * This function is used to set up the database connection, 
+     * and return all the relevant table names in the database.
+     * @return List of tables in the database that are user created.
+     */
     private static List<String> setupDatabaseConnection() {
 
         Connection con;
@@ -88,7 +115,6 @@ public class Main {
                 if (!sets.getString(3).equals("SEQUENCE")) {
                     tableNameList.add(sets.getString(3));
                 }
-                //System.out.println(sets.getString(3));
             }
             con.close();
         } catch (SQLException | ClassNotFoundException ex) {
@@ -97,11 +123,18 @@ public class Main {
         return tableNameList;
     }
 
+    /**
+     * Takes in a name of a table in the database, and creates an SQL query that
+     * obtains all entries in that table.
+     * @param tableName
+     * @return Selection SQL query of the given table name.
+     */
     private static String createQueryString(String tableName) {
         return "SELECT a FROM " + tableName + " a";
     }
 
     /**
+     * The command line arguments are not yet used for this program.
      * @param args the command line arguments
      */
     public static void main(String[] args) 
@@ -206,6 +239,15 @@ public class Main {
 
     }
     
+    /**
+     * This method is responsible for combining two ClassWrapper objects. The combination 
+     * includes the names of both classes, and all the fields and all methods of
+     * both objects.
+     * @param first
+     * @param second
+     * @return A ClassWrapper composed of the combination of the two input ClassWrapper 
+     * parameters.
+     */
     private static ClassWrapper combineObjects(ClassWrapper first, ClassWrapper second)
     {
         ClassWrapper cw = new ClassWrapper();
@@ -218,6 +260,13 @@ public class Main {
         return cw;
     }
 
+    /**
+     * Returns the list of ClassWrappers that are created from exploring the
+     * tables in the database. Each class wrapper stores a class that is defined
+     * in the object space somewhere. 
+     * @param path The path to the source file of an object in the project.
+     * @return List of ClassWrappers that the agents can use as "knowledge" base.
+     */
     private static List<ClassWrapper> extractTables(String path) {
         List<String> tables = setupDatabaseConnection()
                 .stream()
@@ -247,15 +296,15 @@ public class Main {
                 resultWrappers.add(classWrapper);
 
             } catch (ClassNotFoundException ex) {
-                //Logger.getLogger(Main.class.getName()).log(Level.WARNING, null, ex);
+                Logger.getLogger(Main.class.getName()).log(Level.WARNING, "Class not found.", ex);
             } catch (InstantiationException ex) {
-                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main.class.getName()).log(Level.WARNING, "Cannot instantiate object.", ex);
             } catch (IllegalAccessException ex) {
-                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main.class.getName()).log(Level.WARNING, "Cannot access object members.", ex);
             } catch (IllegalArgumentException ex) {
-                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main.class.getName()).log(Level.WARNING, "Wrong number of arguments given to the constructor.", ex);
             } catch (InvocationTargetException ex) {
-                //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main.class.getName()).log(Level.WARNING, "Cannot invocate object.", ex);
             }
         });
         return resultWrappers;
